@@ -170,7 +170,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         response += u'**Aktualisierungsdatum**  \n' + str(time.strftime('%d.%m.%Y, %H:%M Uhr', time.localtime(mtime))) + u'  \n'
 
         response += u'**Datentyp**  \n' + u'  \n'
-        
+
         # quelle
         element_text = self._node_exists_and_is_nonempty(dataset_node, 'quelle')
         if element_text != None:
@@ -299,7 +299,12 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
 
             # Insert or update the package
             package = model.Package.get(package_dict['id'])
-            pkg_role = model.PackageRole(package=package, user=user, role=model.Role.ADMIN)
+            if package: # package has already been imported.
+                # create a diff between this new metadata aset and the one from yesterday.
+                # send the diff to SSZ
+                log.debug('TODO: generating the diff for the dataset: ' + package_dict['id'])
+            else: # package does not exist, therefore create it
+                pkg_role = model.PackageRole(package=package, user=user, role=model.Role.ADMIN)
 
             # Move file around and make sure it's in the file-store
             for r in package_dict['resources']:
@@ -315,8 +320,9 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                     r['url'] = self.CKAN_SITE_URL + '/storage/f/' + label
                     self.get_ofs().put_stream(self.BUCKET, label, file_contents, params)
 
-            result = self._create_or_update_package(package_dict, harvest_object)
-            Session.commit()
+            if package == None:
+                result = self._create_or_update_package(package_dict, harvest_object)
+                Session.commit()
 
         except Exception, e:
             log.exception(e)
