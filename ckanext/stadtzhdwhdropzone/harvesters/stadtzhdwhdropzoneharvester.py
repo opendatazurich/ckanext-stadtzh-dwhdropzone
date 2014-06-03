@@ -1,7 +1,6 @@
 #coding: utf-8
 
 import os
-import time
 from lxml import etree
 
 from ofs import get_impl
@@ -136,16 +135,6 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
             if attribut.find('feldbeschreibung').text != None:
                 response += attribut.find('feldbeschreibung').text + u'  \n'
         return response
-    
-    def _node_exists_and_is_nonempty(self, dataset_node, element_name):
-        element = dataset_node.find(element_name)
-        if element == None:
-            log.debug('TODO: send a message to SSZ, telling them Georg has to fix the meta.xml (OGDZH-29)')
-            return None
-        elif element.text == None:
-            return None
-        else:
-            return element.text
 
     def _generate_notes(self, dataset_node, dataset_name):
         '''
@@ -216,7 +205,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         # list directories in dwhdropzone folder
         datasets = self._remove_hidden_files(os.listdir(self.DROPZONE_PATH))
         for dataset in datasets:
-            meta_xml_file_path = os.path.join(self.DROPZONE_PATH, dataset, 'meta.xml')
+            meta_xml_file_path = os.path.join(self.DROPZONE_PATH, dataset, 'DEFAULT/meta.xml')
             metadata = {}
 
             # check if a meta.xml exists
@@ -229,7 +218,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         'datasetID': dataset,
                         'title': dataset_node.find('titel').text,
                         'url': None, # the source url for that dataset
-                        'notes': self._generate_notes(dataset_node, dataset),
+                        'notes': self._generate_notes(dataset_node),
                         'author': dataset_node.find('quelle').text,                        
                         'tags': self._generate_tags(dataset_node)
                     }
