@@ -44,7 +44,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
     }
 
     DROPZONE_PATH = '/usr/lib/ckan/DWH'
-    METADATA_PATH = '/vagrant/data/DWH-METADATA'
+    METADATA_PATH = config.get('metadata.metadatapath', '/vagrant/data/DWH-METADATA')
     DIFF_PATH = config.get('metadata.diffpath', '/vagrant/data/diffs')
 
     # ---
