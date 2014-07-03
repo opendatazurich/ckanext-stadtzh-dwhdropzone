@@ -151,6 +151,12 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         else:
             return element.text
 
+    def _get(self, node, name):
+        element = self._node_exists_and_is_nonempty(node, name)
+        if element:
+            return element
+        else:
+            return ''
 
     def info(self):
         '''
