@@ -195,10 +195,10 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                     'url': None
                 }
 
-            metadata['maintainer'] = 'Open Data Zürich'
-            metadata['maintainer_email'] = 'opendata@zuerich.ch'
-            metadata['license_id'] = 'to_be_filled'
-            metadata['license_url'] = 'to_be_filled'
+            metadata['maintainer'] = u'Open Data Zürich'
+            metadata['maintainer_email'] = u'opendata@zuerich.ch'
+            metadata['license_id'] = u'to_be_filled'
+            metadata['license_url'] = u'to_be_filled'
             metadata['resources'] = self._generate_resources_dict_array(dataset)
 
             obj = HarvestObject(
@@ -293,13 +293,26 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                                         with open(new_metadata_path) as new_metadata:
                                             with open(diff_path, 'w') as diff:
                                                 diff.write(
-                                                    "<!DOCTYPE html>\n<html>\n<body>\nMetadata diff for the dataset <a href=\""
+                                                    "<!DOCTYPE html>\n<html>\n<body>\n<h2>Metadata diff for the dataset <a href=\""
                                                     + self.CKAN_SITE_URL + "/dataset/" + package_dict['id'] + "\">"
-                                                    + package_dict['id'] + "</a></body></html>\n"
+                                                    + package_dict['id'] + "</a></h2></body></html>\n"
                                                 )
-                                                d = difflib.HtmlDiff()
-                                                diff.write(d.make_file(prev_metadata, new_metadata))
+                                                d = difflib.HtmlDiff(wrapcolumn=60)
+                                                umlauts = {
+                                                    "\\u00e4": "ä",
+                                                    "\\u00f6": "ö",
+                                                    "\\u00fc": "ü",
+                                                    "\\u00c4": "Ä",
+                                                    "\\u00d6": "Ö",
+                                                    "\\u00dc": "Ü",
+                                                    "ISO-8859-1": "UTF-8"
+                                                }
+                                                html = d.make_file(prev_metadata, new_metadata)
+                                                for code in umlauts.keys():
+                                                    html = html.replace(code, umlauts[code])
+                                                diff.write(html)
                                                 log.debug('Metadata diff generated for the dataset: ' + package_dict['id'])
+                                                log.debug(type(prev_metadata), type(new_metadata))
                                 else:
                                     log.debug('No change in metadata for the dataset: ' + package_dict['id'])
                         os.remove(prev_metadata_path)
