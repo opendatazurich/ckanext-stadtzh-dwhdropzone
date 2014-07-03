@@ -114,7 +114,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         Given a dataset folder, it'll return an array of resource metadata
         '''
         resources = []
-        resource_files = self._remove_hidden_files((f for f in os.listdir(os.path.join(self.DROPZONE_PATH, dataset)) 
+        resource_files = self._remove_hidden_files((f for f in os.listdir(os.path.join(self.DROPZONE_PATH, dataset))
             if os.path.isfile(os.path.join(self.DROPZONE_PATH, dataset, f))))
         log.debug(resource_files)
 
@@ -140,7 +140,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
             if attribut.find('feldbeschreibung').text != None:
                 response += attribut.find('feldbeschreibung').text + u'  \n'
         return response
-    
+
     def _node_exists_and_is_nonempty(self, dataset_node, element_name):
         element = dataset_node.find(element_name)
         if element == None:
@@ -151,6 +151,12 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         else:
             return element.text
 
+    def _get(self, node, name):
+        element = self._node_exists_and_is_nonempty(node, name)
+        if element:
+            return element
+        else:
+            return ''
 
     def info(self):
         '''
@@ -185,8 +191,17 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         'datasetID': dataset,
                         'title': dataset_node.find('titel').text,
                         'url': None, # the source url for that dataset
-                        'author': dataset_node.find('quelle').text,                        
-                        'tags': self._generate_tags(dataset_node)
+                        'notes': dataset_node.find('beschreibung').text,
+                        'author': dataset_node.find('quelle').text,
+                        'tags': self._generate_tags(dataset_node),
+                        'extras': [
+                            ('spatialRelationship', self._get(dataset_node, 'raeumliche_beziehung')),
+                            ('version', self._get(dataset_node, 'aktuelle_version')),
+                            ('timeRange', self._get(dataset_node, 'zeitraum')),
+                            ('comments', self._get(dataset_node, 'bemerkungen')),
+                            ('attributes', self._json_encode_attributes(self._get_attributes(dataset_node)))
+                        ],
+                        'related': self._get_related(dataset_node)
                     }
             else:
                 metadata = {
@@ -209,10 +224,10 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
             obj.save()
             log.debug('adding ' + metadata['datasetID'] + ' to the queue')
             ids.append(obj.id)
-            
+
             if not os.path.isdir(os.path.join(self.METADATA_PATH, dataset)):
                 os.makedirs(os.path.join(self.METADATA_PATH, dataset))
-            
+
             with open(os.path.join(self.METADATA_PATH, dataset, 'metadata-' + str(datetime.date.today())), 'w') as meta_json:
                 meta_json.write(json.dumps(metadata, sort_keys=True, indent=4, separators=(',', ': ')))
                 log.debug('Metadata JSON created')
@@ -275,15 +290,15 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
             if package: # package has already been imported.
                 # create a diff between this new metadata set and the one from yesterday.
                 # send the diff to SSZ
-                
+
                 today = datetime.date.today()
                 new_metadata_path = os.path.join(self.METADATA_PATH, package_dict['id'], 'metadata-' + str(today))
                 prev_metadata_path = os.path.join(self.METADATA_PATH, package_dict['id'], 'metadata-previous')
                 diff_path = os.path.join(self.DIFF_PATH, str(today) + '-' + package_dict['id'] + '.html')
-                
+
                 if not os.path.isdir(self.DIFF_PATH):
                     os.makedirs(self.DIFF_PATH)
-                
+
                 if os.path.isfile(new_metadata_path):
                     if os.path.isfile(prev_metadata_path):
                         with open(prev_metadata_path) as prev_metadata:
@@ -318,9 +333,9 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         log.debug('Deleted previous day\'s metadata file.')
                     else:
                         log.debug('No earlier metadata JSON')
-                    
+
                     os.rename(new_metadata_path, prev_metadata_path)
-                    
+
                 else:
                     log.debug('Metadata JSON missing for the dataset: ' + package_dict['id'])
             else: # package does not exist, therefore create it
@@ -342,9 +357,68 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
 
             if not package:
                 result = self._create_or_update_package(package_dict, harvest_object)
+                if 'related' in package_dict:
+                    self._related_create_or_update(package_dict['name'], package_dict['related'])
                 Session.commit()
 
         except Exception, e:
             log.exception(e)
 
         return True
+
+    def _json_encode_attributes(self, properties):
+        _dict = {}
+        for key, value in properties:
+            if value:
+                _dict[key] = value
+
+        return json.dumps(_dict)
+
+    def _get_attributes(self, node):
+        attribut_list = node.find('attributliste')
+        attributes = []
+        for attribut in attribut_list:
+            attributes.append((attribut.find('sprechenderfeldname').text, attribut.find('feldbeschreibung').text))
+        return attributes
+
+    def _get_related(self, xpath):
+        related = []
+        app_list = xpath.find('anwendungen')
+        for app in app_list:
+            related.append({
+                'title': self._get(app, 'beschreibung'),
+                'type': 'Applikation',
+                'url': self._get(app, 'url')
+            })
+        pub_list = xpath.find('publikationen')
+        for pub in pub_list:
+            related.append({
+                'title': self._get(pub, 'beschreibung'),
+                'type': 'Publikation',
+                'url': self._get(pub, 'url')
+            })
+        return related
+
+    def _related_create_or_update(self, dataset_id, data):
+        context = {
+            'model': model,
+            'session': Session,
+            'user': self.config['user']
+        }
+
+        related_items = {}
+        data_dict = {
+            'id': dataset_id
+        }
+        for related in action.get.related_list(context, data_dict):
+            related_items[related['url']] = related
+
+        for entry in data:
+            entry['dataset_id'] = dataset_id
+            if entry['url'] in related_items.keys():
+                entry = dict(related_items[entry['url']].items() + entry.items())
+                log.debug('Updating related %s' % entry)
+                action.update.related_update(context, entry)
+            else:
+                log.debug('Creating related %s' % entry)
+                action.create.related_create(context, entry)
