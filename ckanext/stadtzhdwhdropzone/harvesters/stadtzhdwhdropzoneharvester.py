@@ -312,7 +312,6 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                                                     html = html.replace(code, umlauts[code])
                                                 diff.write(html)
                                                 log.debug('Metadata diff generated for the dataset: ' + package_dict['id'])
-                                                log.debug(type(prev_metadata), type(new_metadata))
                                 else:
                                     log.debug('No change in metadata for the dataset: ' + package_dict['id'])
                         os.remove(prev_metadata_path)
