@@ -151,54 +151,6 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         else:
             return element.text
 
-    def _generate_notes(self, dataset_node, dataset_name):
-        '''
-        Compose the notes given the elements available within the node
-        '''
-        response = u''
-
-        # details
-        element_text = self._node_exists_and_is_nonempty(dataset_node, 'beschreibung')
-        if element_text != None:
-            response += u'**Details**  \n' + element_text + u'  \n'
-
-        response += u'**Urheber**  \n' + u'  \n'
-        response += u'**Erstmalige Veröffentlichung**  \n' + u'  \n'
-
-        # zeitraum
-        element_text = self._node_exists_and_is_nonempty(dataset_node, 'zeitraum')
-        if element_text != None:
-            response += u'**Zeitraum**  \n' + element_text + u'  \n'
-
-        response += u'**Aktualisierungsintervall**  \n' + u'  \n'
-
-        # aktuelle_version
-        element_text = self._node_exists_and_is_nonempty(dataset_node, 'aktuelle_version')
-        if element_text != None:
-            response += u'**Aktuelle Version**  \n' + element_text + u'  \n'
-
-        resources_path = os.path.join(self.DROPZONE_PATH, dataset_name)
-        resource_files = [f for f in os.listdir(resources_path) if not (f != 'meta.xml' or f.endswith(".txt"))]
-        log.debug('dataset_name: ' + dataset_name)
-        log.debug(resource_files) # debugging
-        (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.join(resources_path, resource_files[0]))
-        response += u'**Aktualisierungsdatum**  \n' + time.strftime('%d.%m.%Y, %H:%M Uhr', time.localtime(mtime)) + u'  \n'
-
-        response += u'**Datentyp**  \n' + u'  \n'
-
-        # quelle
-        element_text = self._node_exists_and_is_nonempty(dataset_node, 'quelle')
-        if element_text != None:
-            response += u'**Quelle**  \n' + element_text + u'  \n'
-
-        # raeumliche_beziehung
-        element_text = self._node_exists_and_is_nonempty(dataset_node, 'raeumliche_beziehung')
-        if element_text != None:
-            response += u'**Räumliche Beziehung**  \n' + element_text + u'  \n'
-
-        response += self._generate_attribute_notes(dataset_node.find('attributliste'))
-        return response
-
 
     def info(self):
         '''
@@ -233,7 +185,6 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         'datasetID': dataset,
                         'title': dataset_node.find('titel').text,
                         'url': None, # the source url for that dataset
-                        'notes': self._generate_notes(dataset_node, dataset),
                         'author': dataset_node.find('quelle').text,                        
                         'tags': self._generate_tags(dataset_node)
                     }
