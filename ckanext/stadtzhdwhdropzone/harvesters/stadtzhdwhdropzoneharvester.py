@@ -45,6 +45,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
 
     DROPZONE_PATH = '/usr/lib/ckan/DWH'
     METADATA_PATH = '/vagrant/data/DWH-METADATA'
+    DIFF_PATH = '/vagrant/data/diffs'
 
     # ---
     # COPIED FROM THE CKAN STORAGE CONTROLLER
@@ -325,26 +326,38 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                 # send the diff to SSZ
                 
                 today = datetime.date.today()
-                delta = datetime.timedelta(days=-1)
-                yesterday = today + delta
                 new_metadata_path = os.path.join(self.METADATA_PATH, package_dict['id'], 'metadata-' + str(today))
-                prev_metadata_path = os.path.join(self.METADATA_PATH, package_dict['id'], 'metadata-' + str(yesterday))
-                diff_path = os.path.join(self.METADATA_PATH, package_dict['id'], 'diff-' + str(today) + '.html')
+                prev_metadata_path = os.path.join(self.METADATA_PATH, package_dict['id'], 'metadata-previous')
+                diff_path = os.path.join(self.DIFF_PATH, str(today) + '-' + package_dict['id'] + '.html')
                 
-                if os.path.isfile(new_metadata_path) and os.path.isfile(prev_metadata_path):
-                    with open(prev_metadata_path) as prev_metadata:
-                        with open(new_metadata_path) as new_metadata:
-                            if prev_metadata.read() != new_metadata.read():
-                                with open(prev_metadata_path) as prev_metadata:
-                                    with open(new_metadata_path) as new_metadata:
-                                        with open(diff_path, 'w') as diff:
-                                            d = difflib.HtmlDiff()
-                                            diff.write(d.make_file(prev_metadata, new_metadata))
-                                            log.debug('Metadata diff generated for the dataset: ' + package_dict['id'])
-                            else:
-                                log.debug('No change in metadata for the dataset: ' + package_dict['id'])
-                    os.remove(prev_metadata_path)
-                    log.debug('Deleted previous day\'s metadata file.')
+                if not os.path.isdir(self.DIFF_PATH):
+                    os.makedirs(self.DIFF_PATH)
+                
+                if os.path.isfile(new_metadata_path):
+                    if os.path.isfile(prev_metadata_path):
+                        with open(prev_metadata_path) as prev_metadata:
+                            with open(new_metadata_path) as new_metadata:
+                                if prev_metadata.read() != new_metadata.read():
+                                    with open(prev_metadata_path) as prev_metadata:
+                                        with open(new_metadata_path) as new_metadata:
+                                            with open(diff_path, 'w') as diff:
+                                                diff.write(
+                                                    "<!DOCTYPE html>\n<html>\n<body>\nMetadata diff for the dataset <a href=\""
+                                                    + self.CKAN_SITE_URL + "/dataset/" + package_dict['id'] + "\">"
+                                                    + package_dict['id'] + "</a></body></html>\n"
+                                                )
+                                                d = difflib.HtmlDiff()
+                                                diff.write(d.make_file(prev_metadata, new_metadata))
+                                                log.debug('Metadata diff generated for the dataset: ' + package_dict['id'])
+                                else:
+                                    log.debug('No change in metadata for the dataset: ' + package_dict['id'])
+                        os.remove(prev_metadata_path)
+                        log.debug('Deleted previous day\'s metadata file.')
+                    else:
+                        log.debug('No earlier metadata JSON')
+                    
+                    os.rename(new_metadata_path, prev_metadata_path)
+                    
                 else:
                     log.debug('Metadata JSON missing for the dataset: ' + package_dict['id'])
             else: # package does not exist, therefore create it
