@@ -212,8 +212,8 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
 
             metadata['maintainer'] = u'Open Data Zürich'
             metadata['maintainer_email'] = u'opendata@zuerich.ch'
-            metadata['license_id'] = u'to_be_filled'
-            metadata['license_url'] = u'to_be_filled'
+            metadata['license_id'] = u'cc-zero'
+            metadata['license_url'] = u'http://opendefinition.org/licenses/cc-zero/'
             metadata['resources'] = self._generate_resources_dict_array(dataset)
 
             obj = HarvestObject(
