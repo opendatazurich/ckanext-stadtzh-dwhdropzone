@@ -340,7 +340,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                                             with open(diff_path, 'w') as diff:
                                                 diff.write(
                                                     "<!DOCTYPE html>\n<html>\n<body>\n<h2>Metadata diff for the dataset <a href=\""
-                                                    + self.CKAN_SITE_URL + "/dataset/" + package_dict['id'] + "\">"
+                                                    + "https://ogd-integ.global.szh.loc/" + "/dataset/" + package_dict['id'] + "\">"
                                                     + package_dict['id'] + "</a></h2></body></html>\n"
                                                 )
                                                 d = difflib.HtmlDiff(wrapcolumn=60)
