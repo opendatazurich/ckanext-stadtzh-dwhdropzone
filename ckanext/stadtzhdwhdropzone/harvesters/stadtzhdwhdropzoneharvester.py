@@ -209,6 +209,9 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         ],
                         'related': self._get_related(dataset_node)
                     }
+
+                    if dataset_node.find('datenqualitaet').text:
+                        metadata['notes'] = metadata['notes']  + '\n\n' + dataset_node.find('datenqualitaet').text
             else:
                 metadata = {
                     'datasetID': dataset,
