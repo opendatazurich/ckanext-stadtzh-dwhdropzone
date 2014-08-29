@@ -193,8 +193,13 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         'url': dataset_node.find('lieferant').text, 
                         'notes': dataset_node.find('beschreibung').text,
                         'author': dataset_node.find('quelle').text,
+                        'maintainer': 'Open Data Zürich',
+                        'maintainer_email': 'opendata@zuerich.ch',
+                        'license_id': 'cc-zero',
+                        'license_url': 'http://opendefinition.org/licenses/cc-zero/',
                         'tags': self._generate_tags(dataset_node),
                         'groups': dataset_node.find('kategorie').text,
+                        'resources': self._generate_resources_dict_array(dataset),
                         'extras': [
                             ('spatialRelationship', self._get(dataset_node, 'raeumliche_beziehung')),
                             ('dateFirstPublished', self._get(dataset_node, 'erstmalige_veroeffentlichung')),
@@ -241,12 +246,6 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                 except:
                     log.debug('Couldn\'t get group id for title %s.' % title)
             metadata['groups'] = groups
-
-            metadata['maintainer'] = u'Open Data Zürich'
-            metadata['maintainer_email'] = u'opendata@zuerich.ch'
-            metadata['license_id'] = u'cc-zero'
-            metadata['license_url'] = u'http://opendefinition.org/licenses/cc-zero/'
-            metadata['resources'] = self._generate_resources_dict_array(dataset)
 
             obj = HarvestObject(
                 guid = metadata['datasetID'],
