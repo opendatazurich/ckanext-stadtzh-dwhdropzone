@@ -190,12 +190,18 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                     metadata = {
                         'datasetID': dataset,
                         'title': dataset_node.find('titel').text,
-                        'url': None, # the source url for that dataset
+                        'url': dataset_node.find('lieferant').text, 
                         'notes': dataset_node.find('beschreibung').text,
                         'author': dataset_node.find('quelle').text,
                         'tags': self._generate_tags(dataset_node),
+                        'groups': dataset_node.find('kategorie').text,
                         'extras': [
                             ('spatialRelationship', self._get(dataset_node, 'raeumliche_beziehung')),
+                            ('dateFirstPublished', self._get(dataset_node, 'erstmalige_veroeffentlichung')),
+                            ('dateLastUpdated', self._get(dataset_node, 'aktualisierungsdatum')),
+                            ('updateInterval', self._get(dataset_node, 'aktualisierungsintervall')),
+                            ('dataType', self._get(dataset_node, 'datentyp')),
+                            ('legalInformation', self._get(dataset_node, 'rechtsgrundlage')),
                             ('version', self._get(dataset_node, 'aktuelle_version')),
                             ('timeRange', self._get(dataset_node, 'zeitraum')),
                             ('comments', self._get(dataset_node, 'bemerkungen')),
@@ -209,6 +215,29 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                     'title': dataset,
                     'url': None
                 }
+
+            # Get group IDs from group titles
+            user = model.User.get(self.config['user'])
+            context = {
+                'model': model,
+                'session': Session,
+                'user': self.config['user']
+            }
+
+            groups = []
+            group_titles = metadata['groups'].split(', ')
+            for title in group_titles:
+                if title == u'Bauen und Wohnen':
+                    name = u'bauen-wohnen'
+                else:
+                    name = title.lower().replace(u'ö', u'oe').replace(u'ä', u'ae')
+                try:
+                    data_dict = {'id': name}
+                    group_id = get_action('group_show')(context, data_dict)['id']
+                    groups.append(group_id)
+                except:
+                    log.debug('Couldn\'t get group id for title %s.' % title)
+            metadata['groups'] = groups
 
             metadata['maintainer'] = u'Open Data Zürich'
             metadata['maintainer_email'] = u'opendata@zuerich.ch'
