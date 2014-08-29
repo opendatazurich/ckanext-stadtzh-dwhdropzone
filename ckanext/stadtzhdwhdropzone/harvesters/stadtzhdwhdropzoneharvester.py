@@ -37,7 +37,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
     }
     LANG_CODES = ['de', 'fr', 'it', 'en']
     BUCKET = config.get('ckan.storage.bucket', 'default')
-    CKAN_SITE_URL = config.get('ckan.site_url', 'http://stadtzh.lo')
+    CKAN_SITE_URL = 'https://ogd-integ.global.szh.loc/'
 
     config = {
         'user': u'harvest'
