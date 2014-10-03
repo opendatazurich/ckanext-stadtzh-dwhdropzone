@@ -103,7 +103,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         '''
         Given a dataset node it extracts the tags and returns them in an array
         '''
-        if dataset_node.find('keywords').text is not None:
+        if dataset_node.find('keywords') is not None:
             return dataset_node.find('keywords').text.split(', ')
         else:
             return []
@@ -243,6 +243,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                     data_dict = {'id': name}
                     group_id = get_action('group_show')(context, data_dict)['id']
                     groups.append(group_id)
+                    log.debug('Added group %s' % name)
                 except:
                     log.debug('Couldn\'t get group id for title %s.' % title)
             metadata['groups'] = groups
@@ -453,5 +454,8 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                 log.debug('Updating related %s' % entry)
                 action.update.related_update(context, entry)
             else:
-                log.debug('Creating related %s' % entry)
-                action.create.related_create(context, entry)
+                try:
+                    log.debug('Creating related %s' % entry)
+                    action.create.related_create(context, entry)
+                except Exception, e:
+                    log.exception(e)
