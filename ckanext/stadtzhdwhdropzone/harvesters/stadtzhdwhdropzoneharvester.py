@@ -204,7 +204,7 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                             ('spatialRelationship', self._get(dataset_node, 'raeumliche_beziehung')),
                             ('dateFirstPublished', self._get(dataset_node, 'erstmalige_veroeffentlichung')),
                             ('dateLastUpdated', self._get(dataset_node, 'aktualisierungsdatum')),
-                            ('updateInterval', self._get(dataset_node, 'aktualisierungsintervall')),
+                            ('updateInterval', self._get(dataset_node, 'aktualisierungsintervall').replace(u'ä', u'ae').replace(u'ö', u'oe').replace(u'ü', u'ue')),
                             ('dataType', self._get(dataset_node, 'datentyp')),
                             ('legalInformation', self._get(dataset_node, 'rechtsgrundlage')),
                             ('version', self._get(dataset_node, 'aktuelle_version')),
@@ -217,6 +217,14 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
 
                     if dataset_node.find('datenqualitaet').text:
                         metadata['notes'] = metadata['notes']  + '\n\n' + dataset_node.find('datenqualitaet').text
+
+                    for extra in metadata['extras']                        :
+                        if extra[0] == 'updateInterval' or extra[0] == 'dataType':
+                            if not extra[1]:
+                                metadata['extras'].append((extra[0], '---'))
+                                metadata['extras'].remove(extra)
+                                log.debug('No value in meta.xml for %s' % extra[0])
+
             else:
                 metadata = {
                     'datasetID': dataset,
