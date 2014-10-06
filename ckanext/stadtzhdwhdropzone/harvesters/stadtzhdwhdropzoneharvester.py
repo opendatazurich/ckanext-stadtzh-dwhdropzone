@@ -216,12 +216,12 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                     }
 
                     if dataset_node.find('datenqualitaet').text:
-                        metadata['notes'] = metadata['notes']  + '\n\n' + dataset_node.find('datenqualitaet').text
+                        metadata['notes'] = metadata['notes']  + u'\n\nDatenqualität: ' + dataset_node.find('datenqualitaet').text
 
                     for extra in metadata['extras']                        :
                         if extra[0] == 'updateInterval' or extra[0] == 'dataType':
                             if not extra[1]:
-                                metadata['extras'].append((extra[0], '---'))
+                                metadata['extras'].append((extra[0], '   '))
                                 metadata['extras'].remove(extra)
                                 log.debug('No value in meta.xml for %s' % extra[0])
 
