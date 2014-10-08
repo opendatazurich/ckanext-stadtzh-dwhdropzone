@@ -216,9 +216,6 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                         'related': self._get_related(dataset_node)
                     }
 
-                    if dataset_node.find('datenqualitaet').text:
-                        metadata['notes'] = metadata['notes']
-
                     for extra in metadata['extras']                        :
                         if extra[0] == 'updateInterval' or extra[0] == 'dataType':
                             if not extra[1]:
