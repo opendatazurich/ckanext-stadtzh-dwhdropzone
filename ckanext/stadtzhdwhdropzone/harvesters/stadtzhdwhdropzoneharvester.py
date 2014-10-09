@@ -103,8 +103,8 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
         '''
         Given a dataset node it extracts the tags and returns them in an array
         '''
-        if dataset_node.find('keywords') is not None:
-            return dataset_node.find('keywords').text.split(', ')
+        if dataset_node.find('schlagworte') is not None:
+            return dataset_node.find('schlagworte').text.split(', ')
         else:
             return []
 
