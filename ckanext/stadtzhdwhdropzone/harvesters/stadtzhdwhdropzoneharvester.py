@@ -210,13 +210,11 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                             ('version', self._get(dataset_node, 'aktuelle_version')),
                             ('timeRange', self._get(dataset_node, 'zeitraum')),
                             ('comments', self._get(dataset_node, 'bemerkungen')),
-                            ('attributes', self._json_encode_attributes(self._get_attributes(dataset_node)))
+                            ('attributes', self._json_encode_attributes(self._get_attributes(dataset_node))),
+                            ('dataQuality', self._get(dataset_node, 'datenqualitaet'))
                         ],
                         'related': self._get_related(dataset_node)
                     }
-
-                    if dataset_node.find('datenqualitaet').text:
-                        metadata['notes'] = metadata['notes']  + u'\n\nDatenqualität: ' + dataset_node.find('datenqualitaet').text
 
                     for extra in metadata['extras']                        :
                         if extra[0] == 'updateInterval' or extra[0] == 'dataType':
