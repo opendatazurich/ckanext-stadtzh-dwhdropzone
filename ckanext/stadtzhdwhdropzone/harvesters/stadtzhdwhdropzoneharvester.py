@@ -256,25 +256,29 @@ class StadtzhdwhdropzoneHarvester(HarvesterBase):
                 'user': self.config['user']
             }
 
-            groups = []
-            group_titles = metadata['groups'].split(', ')
-            for title in group_titles:
-                if title == u'Bauen und Wohnen':
-                    name = u'bauen-wohnen'
-                else:
-                    name = title.lower().replace(u'ö', u'oe').replace(u'ä', u'ae')
-                try:
-                    data_dict = {'id': name}
-                    group_id = get_action('group_show')(context, data_dict)['id']
-                    groups.append(group_id)
-                    log.debug('Added group %s' % name)
-                except:
-                    data_dict['name'] = name
-                    data_dict['title'] = title
-                    log.debug('Couldn\'t get group id. Creating the group `%s` with data_dict: %s', name, data_dict)
-                    group_id = get_action('group_create')(context, data_dict)['id']
-                    groups.append(group_id)
-            metadata['groups'] = groups
+            if metadata['groups']:
+                groups = []
+                group_titles = metadata['groups'].split(', ')
+                for title in group_titles:
+                    if title == u'Bauen und Wohnen':
+                        name = u'bauen-wohnen'
+                    else:
+                        name = title.lower().replace(u'ö', u'oe').replace(u'ä', u'ae')
+                    try:
+                        data_dict = {'id': name}
+                        group_id = get_action('group_show')(context, data_dict)['id']
+                        groups.append(group_id)
+                        log.debug('Added group %s' % name)
+                    except:
+                        data_dict['name'] = name
+                        data_dict['title'] = title
+                        log.debug('Couldn\'t get group id. Creating the group `%s` with data_dict: %s', name, data_dict)
+                        group_id = get_action('group_create')(context, data_dict)['id']
+                        groups.append(group_id)
+                metadata['groups'] = groups
+            else:
+                metadata['groups'] = []
+                log.debug('No groups found for dataset %s.' % dataset)
 
             obj = HarvestObject(
                 guid = metadata['datasetID'],
