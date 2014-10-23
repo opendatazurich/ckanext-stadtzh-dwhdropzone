@@ -37,15 +37,4 @@ class StadtzhdwhdropzoneHarvester(StadtzhHarvester):
 
     def import_stage(self, harvest_object):
         log.debug('In StadtzhdwhdropzoneHarvester import_stage')
-
-        if not harvest_object:
-            log.error('No harvest object received')
-            return False
-
-        try:
-            self._import_package(harvest_object)
-            Session.commit()
-        except Exception, e:
-            log.exception(e)
-
-        return True
+        return self._import_datasets(harvest_object)
