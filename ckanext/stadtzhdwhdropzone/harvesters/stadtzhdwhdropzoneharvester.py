@@ -1,10 +1,10 @@
 # coding: utf-8
 
-from pylons import config
-from ckan.model import Session
 from ckanext.stadtzhharvest.harvester import StadtzhHarvester
 
+import os
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -14,7 +14,7 @@ class StadtzhdwhdropzoneHarvester(StadtzhHarvester):
     '''
 
     DATA_PATH = '/usr/lib/ckan/DWH'
-    METADATA_PATH = config.get('metadata.metadatapath', '/usr/lib/ckan/diffs/dwh-metadata')
+    METADATA_DIR = 'dwh-metadata'
 
     def info(self):
         '''
