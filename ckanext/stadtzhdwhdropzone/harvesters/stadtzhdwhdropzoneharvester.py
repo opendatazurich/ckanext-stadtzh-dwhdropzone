@@ -1,8 +1,6 @@
 # coding: utf-8
 
 from ckanext.stadtzhharvest.harvester import StadtzhHarvester
-
-import os
 import logging
 
 log = logging.getLogger(__name__)
