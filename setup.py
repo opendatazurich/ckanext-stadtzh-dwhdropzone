@@ -28,6 +28,6 @@ setup(
     stadtzhdwhdropzone=ckanext.stadtzhdwhdropzone.plugins:StadtzhdwhdropzoneHarvest
     stadtzhdwhdropzone_harvester=ckanext.stadtzhdwhdropzone.harvesters:StadtzhdwhdropzoneHarvester
     [paste.paster_command]
-    harvester=ckanext.stadtzhdwhdropzone.commands.harvester:Harvester
+    harvester=ckanext.stadtzhdwhdropzone.commands.harvester:HarvesterCommand
     """,
 )
