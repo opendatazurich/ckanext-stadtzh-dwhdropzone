@@ -25,6 +25,14 @@ class StadtzhdwhdropzoneHarvester(StadtzhHarvester):
             'form_config_interface': 'Text'
         }
 
+    def _import_updated_packages(self):
+        '''
+        Define wheter packages may be updated automatically using this harvester.
+        If not, only new packages are imported.
+        This method should be overridden in sub-classes accordingly
+        '''
+        return True
+
     def gather_stage(self, harvest_job):
         log.debug('In StadtzhdwhdropzoneHarvester gather_stage')
         return self._gather_datasets(harvest_job)
